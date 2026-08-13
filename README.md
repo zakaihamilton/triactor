@@ -49,8 +49,6 @@ of your state is shared by unrelated parts of the application, you need a deep
 Redux ecosystem and action history, or your domain is naturally modeled as an
 atom dependency graph, another library may be a better fit.
 
-## Quick start
-
 [![npm version](https://img.shields.io/npm/v/triactor.svg)](https://www.npmjs.com/package/triactor)
 [![CI](https://github.com/zakaihamilton/triactor/actions/workflows/ci.yml/badge.svg)](https://github.com/zakaihamilton/triactor/actions/workflows/ci.yml)
 [![License](https://img.shields.io/npm/l/triactor.svg)](https://github.com/zakaihamilton/triactor/blob/main/LICENSE)
