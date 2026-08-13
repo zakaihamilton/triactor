@@ -1,6 +1,6 @@
 {
   "name": "triactor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Hierarchical proxy state for React",
   "type": "module",
   "license": "MIT",
@@ -12,7 +12,11 @@
     "url": "https://github.com/zakaihamilton/triactor/issues"
   },
   "homepage": "https://github.com/zakaihamilton/triactor#readme",
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
