@@ -4,6 +4,14 @@
   "description": "Hierarchical proxy state for React",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zakaihamilton/triactor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zakaihamilton/triactor/issues"
+  },
+  "homepage": "https://github.com/zakaihamilton/triactor#readme",
   "files": ["dist", "README.md", "LICENSE"],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

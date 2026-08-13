@@ -115,6 +115,19 @@ describe('hierarchical nodes', () => {
     expect(() => unsubscribe()).not.toThrow();
   });
 
+  it('supports the client fallback root and promise microtask fallback', async () => {
+    const { result } = renderHook(() => Node.useNode());
+    const listener = vi.fn();
+    const unsubscribe = subscribeToNode(result.current, listener);
+    vi.stubGlobal('queueMicrotask', undefined);
+    nodeSetProperty(result.current, 'fallback', true);
+    await Promise.resolve();
+    expect(listener).toHaveBeenCalledWith(result.current, 'fallback', true);
+    unsubscribe();
+    Node.resetRoot();
+    vi.unstubAllGlobals();
+  });
+
   it('rejects server usage without StateRoot', () => {
     function NoRoot() {
       Node.useNode();

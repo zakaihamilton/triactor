@@ -2,7 +2,6 @@ import {
   useCallback,
   useEffect,
   useRef,
-  useState as useReactState,
   useSyncExternalStore,
 } from 'react';
 import Node, { nodeGetProperty, nodeSetProperty, subscribeToNode } from './node';
@@ -58,38 +57,33 @@ export function createState<T extends object>(displayName: string): StateScope<T
 
   State.useFutureState = (selector?: StateSelector<T>, id?: string) => {
     const startNode = Node.useNode();
-    const existingNode = Node.useNode(scopeKey);
-    const foundObject = useRef(nodeGetProperty(existingNode, scopeKey) as StateStore<T> | undefined);
-    const [object, setObject] = useReactState<StateStore<T> | undefined>(foundObject.current);
-
-    useEffect(() => {
+    const subscribe = useCallback(
+      (onStoreChange: () => void) => {
+        const unsubscribes: Array<() => void> = [];
+        let search: ReturnType<typeof Node.useNode> | null = startNode;
+        const handleEvent = (_node: unknown, property: unknown) => {
+          if (property === scopeKey) onStoreChange();
+        };
+        while (search) {
+          unsubscribes.push(subscribeToNode(search, handleEvent));
+          search = search.parent;
+        }
+        return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
+      },
+      [startNode],
+    );
+    const getSnapshot = useCallback(() => {
       let search: ReturnType<typeof Node.useNode> | null = startNode;
       while (search) {
-        const current = nodeGetProperty(search, scopeKey) as StateStore<T> | undefined;
-        if (current) {
-          foundObject.current = current;
-          setObject(current);
-          return;
-        }
+        const object = nodeGetProperty(search, scopeKey) as StateStore<T> | undefined;
+        if (object) return object;
         search = search.parent;
       }
+      return undefined;
+    }, [startNode]);
+    const object = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
-      if (object || foundObject.current) return;
-      const unsubscribes: Array<() => void> = [];
-      search = startNode;
-      const handleEvent = (_node: unknown, property: unknown, value: unknown) => {
-        if (property !== scopeKey) return;
-        foundObject.current = value as StateStore<T>;
-        setObject(value as StateStore<T>);
-      };
-      while (search) {
-        unsubscribes.push(subscribeToNode(search, handleEvent));
-        search = search.parent;
-      }
-      return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
-    }, [startNode, object]);
-
-    return useObjectState(object || foundObject.current, selector, id);
+    return useObjectState(object, selector, id);
   };
 
   State.usePassiveState = () => {

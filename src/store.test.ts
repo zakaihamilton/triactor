@@ -42,4 +42,17 @@ describe('proxy stores', () => {
     expect(matchesSelector((key) => key === 'value', 'value')).toBe(true);
     expect(matchesSelector('other', 'value')).toBe(false);
   });
+
+  it('uses browser-safe fallbacks when crypto and queueMicrotask are unavailable', async () => {
+    vi.stubGlobal('crypto', { randomUUID: undefined });
+    vi.stubGlobal('queueMicrotask', undefined);
+    const store = createStore({ value: 1 });
+    const callback = vi.fn();
+    const unsubscribe = subscribeStore(store, callback);
+    store.value = 2;
+    await Promise.resolve();
+    expect(callback).toHaveBeenCalledWith(['value']);
+    unsubscribe();
+    vi.unstubAllGlobals();
+  });
 });

@@ -40,3 +40,14 @@ state((draft) => {
 ```
 
 Nested objects must be replaced at their top-level key. Notifications are batched in a microtask, and selectors limit which changes cause a component to render.
+
+## Releases
+
+Releases are published from version tags by GitHub Actions. Update the version with `npm version`, push the commit and tag, and the publish workflow will verify and publish the package using npm trusted publishing:
+
+```bash
+npm version patch
+git push --follow-tags origin main
+```
+
+Before the first tagged release, configure `zakaihamilton/triactor` as a trusted publisher for this package in npm’s package settings. The workflow uses GitHub’s OIDC identity and does not store an npm token in the repository.
