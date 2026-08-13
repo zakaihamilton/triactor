@@ -12,6 +12,8 @@ interface MonitorEntry {
 
 interface StoreMeta<T extends object> {
   state: T;
+  id?: string;
+  unique: string;
   monitors: Map<StateMonitorCallback, MonitorEntry>;
   counter: number;
   pendingKeys: Set<string>;
@@ -38,6 +40,8 @@ export function createStore<T extends object>(initial: T, _id?: string): StateSt
   const state = { ...initial } as T;
   const meta: StoreMeta<T> = {
     state,
+    id: _id,
+    unique: makeUniqueId(),
     monitors: new Map(),
     counter: 0,
     pendingKeys: new Set(),
@@ -103,7 +107,6 @@ export function createStore<T extends object>(initial: T, _id?: string): StateSt
   }) as StateStore<T>;
 
   metadata.set(proxy as object, meta as StoreMeta<object>);
-  void makeUniqueId();
   return proxy;
 }
 
