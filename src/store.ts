@@ -37,6 +37,7 @@ function makeUniqueId(): string {
 }
 
 export function createStore<T extends object>(initial: T, _id?: string): StateStore<T> {
+  assertPlainState(initial);
   const state = { ...initial } as T;
   const meta: StoreMeta<T> = {
     state,
@@ -108,6 +109,18 @@ export function createStore<T extends object>(initial: T, _id?: string): StateSt
 
   metadata.set(proxy as object, meta as StoreMeta<object>);
   return proxy;
+}
+
+function assertPlainState(initial: object): void {
+  const prototype = Object.getPrototypeOf(initial);
+  if (
+    (prototype !== Object.prototype && prototype !== null) ||
+    Object.getOwnPropertySymbols(initial).length > 0
+  ) {
+    throw new TypeError(
+      'triactor: state stores require plain objects with string-keyed properties.',
+    );
+  }
 }
 
 function notify<T extends object>(meta: StoreMeta<T>, keys: string[]): void {

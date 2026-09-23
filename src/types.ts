@@ -1,8 +1,14 @@
 import type { FC, ReactNode } from 'react';
 
-/** A shallow mutable draft used by callable store updates. */
+type DeepReadonly<T> = T extends (...args: never[]) => unknown
+  ? T
+  : T extends object
+    ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+    : T;
+
+/** A shallow mutable draft; nested values are read-only in the type system. */
 export type Draft<T> = {
-  -readonly [K in keyof T]: T[K];
+  -readonly [K in keyof T]: DeepReadonly<T[K]>;
 };
 
 export type NodeListener = (node: StateNode, property: unknown, value: unknown) => void;
@@ -28,7 +34,9 @@ export type StateSelector<T extends object> =
   | undefined;
 
 /** Callable proxy store returned by createStore and createState hooks. */
-export type StateStore<T extends object> = T & ((update: (draft: Draft<T>) => void) => void);
+export type StateStore<T extends object> = {
+  -readonly [K in keyof T]: DeepReadonly<T[K]>;
+} & ((update: (draft: Draft<T>) => void) => void);
 
 export interface StateScopeProps<T extends object> {
   children?: ReactNode | ((state: StateStore<T> | undefined) => ReactNode);

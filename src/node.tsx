@@ -1,10 +1,20 @@
-import { type ReactNode, createContext, useContext, useRef } from 'react';
+import {
+  type ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import type { NodeListener, StateNode } from './types';
 
 const rootContext = createContext<StateNode | null>(null);
 const nodeContext = createContext<StateNode | null>(null);
 
 let clientFallbackRoot: StateNode | null = null;
+const committedNodes = new WeakSet<StateNode>();
+const useCommitEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 function makeNode(id: string, parent: StateNode | null): StateNode {
   return { id, parent, items: new Map(), listeners: new Set() };
@@ -17,6 +27,7 @@ function getClientFallbackRoot(): StateNode {
     );
   }
   clientFallbackRoot ??= makeNode('root', null);
+  committedNodes.add(clientFallbackRoot);
   return clientFallbackRoot;
 }
 
@@ -33,6 +44,9 @@ export interface NodeComponent {
 export function StateRoot({ children }: { children?: ReactNode }): ReactNode {
   const rootRef = useRef<StateNode | null>(null);
   rootRef.current ??= makeNode('root', null);
+  useCommitEffect(() => {
+    if (rootRef.current) committedNodes.add(rootRef.current);
+  }, []);
   return (
     <rootContext.Provider value={rootRef.current}>
       <nodeContext.Provider value={rootRef.current}>{children}</nodeContext.Provider>
@@ -42,16 +56,20 @@ export function StateRoot({ children }: { children?: ReactNode }): ReactNode {
 
 const Node: NodeComponent = function Node({ id, children }) {
   const parent = useCurrentNode();
-  const nodeRef = useRef<StateNode | null>(null);
+  const [node, setNode] = useState(() => makeNode(id, parent));
+  let valueNode = node;
 
-  if (!nodeRef.current) {
-    nodeRef.current = makeNode(id, parent);
-  } else {
-    nodeRef.current.id = id;
-    nodeRef.current.parent = parent;
+  if (node.id !== id || node.parent !== parent) {
+    valueNode = makeNode(id, parent);
+    valueNode.items = new Map(node.items);
+    setNode(valueNode);
   }
 
-  return <nodeContext.Provider value={nodeRef.current}>{children}</nodeContext.Provider>;
+  useCommitEffect(() => {
+    committedNodes.add(valueNode);
+  }, [valueNode]);
+
+  return <nodeContext.Provider value={valueNode}>{children}</nodeContext.Provider>;
 };
 
 Node.resetRoot = () => {
@@ -97,6 +115,10 @@ export function subscribeToNode(node: StateNode | null | undefined, callback: No
 
 export function nodeGetId(node: StateNode | null | undefined): string | undefined {
   return node?.id;
+}
+
+export function nodeIsCommitted(node: StateNode | null | undefined): boolean {
+  return node ? committedNodes.has(node) : false;
 }
 
 function queueTask(callback: () => void): void {

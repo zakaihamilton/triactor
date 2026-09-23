@@ -162,6 +162,9 @@ const UserState = createState<{
 }>('UserState');
 ```
 
+Use plain objects with string-keyed properties for state. Stores do not preserve
+class prototypes, array behavior, or symbol-keyed properties.
+
 The returned state scope can be rendered as a component, or its hooks can be used directly. State stores are proxy objects, so their properties can be read and updated directly while React subscriptions handle rerenders.
 
 ## Reading and updating state
@@ -197,7 +200,9 @@ if (user) {
 }
 ```
 
-Updates are shallow. Changing a nested object requires replacing the top-level property:
+Updates are shallow. TypeScript marks nested values as read-only on both the
+store and its draft, so changing a nested object requires replacing the
+top-level property:
 
 ```tsx
 user.preferences = {
@@ -265,7 +270,7 @@ This hook does not create a store. It returns `undefined` until a `UserState` st
 
 ### `usePassiveState`
 
-Use `usePassiveState()` to read the nearest store without subscribing the component to store updates:
+Use `usePassiveState()` to read the nearest store without subscribing the component to store value updates:
 
 ```tsx
 function DebugLabel() {
@@ -274,7 +279,10 @@ function DebugLabel() {
 }
 ```
 
-This is useful for imperative or non-reactive reads. Use `useState` or `useFutureState` when the component should rerender after state changes.
+This is useful for imperative or non-reactive reads. It can rerender once when a
+matching store is registered later, but it does not rerender when that store's
+values change. Use `useState` or `useFutureState` when the component should
+rerender after state changes.
 
 ## Standalone stores and subscriptions
 
