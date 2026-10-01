@@ -35,7 +35,7 @@ function useCurrentNode(): StateNode {
   return useContext(nodeContext) ?? useContext(rootContext) ?? getClientFallbackRoot();
 }
 
-export interface NodeComponent {
+interface NodeComponent {
   (props: { id: string; children?: ReactNode }): ReactNode;
   useNode: (propertyId?: unknown) => StateNode | null;
   resetRoot: () => void;
@@ -126,5 +126,4 @@ function queueTask(callback: () => void): void {
   else void Promise.resolve().then(callback);
 }
 
-export { nodeContext };
 export default Node;

@@ -29,13 +29,16 @@ The right state library depends on where state belongs and which surrounding
 tools your team needs. This is an architectural comparison, not a performance
 benchmark.
 
-| Approach | Mental model | State placement | Update style | Best fit |
-| --- | --- | --- | --- | --- |
-| React Context | A value provided to a subtree | Provider-defined subtree | Replace or update the provided value | Small shared dependencies, configuration, and simple state |
-| Redux | A centralized store with explicit actions and reducers | Usually app-wide | Dispatch actions through reducers | Large app-wide state, predictable event flows, and Redux tooling |
-| Zustand | One or more independent stores with hook-based subscriptions | Usually module/global scope | Store actions or direct updates | Lightweight global or cross-feature state |
-| Jotai | A graph of composable atoms | Atom-defined scope, often shared globally | Update individual atoms or derived atoms | Fine-grained atom dependencies and derived state |
-| **Triactor** | State scopes nested in the React tree | The nearest `Node`/`StateRoot` scope | Direct proxy assignment or shallow drafts | Feature and subtree state that should be local, inheritable, and easy to update |
+- **React Context:** Provider-defined subtree; replace or update its value.
+  Best for small shared dependencies, configuration, and simple state.
+- **Redux:** Centralized store with explicit actions and reducers, usually
+  app-wide. Best for predictable event flows, large state, and Redux tooling.
+- **Zustand:** Independent stores with hook-based subscriptions, often at
+  module or global scope. Best for lightweight global or cross-feature state.
+- **Jotai:** A graph of composable atoms, often shared globally. Best for
+  fine-grained atom dependencies and derived state.
+- **Triactor:** State scopes nested in the React tree, with direct proxy
+  assignment or shallow drafts. Best for local, inheritable feature state.
 
 Choose Triactor when the ownership of state maps naturally to the UI hierarchy
 and you want descendants to share the nearest scoped instance. Choose Redux,
@@ -49,11 +52,22 @@ of your state is shared by unrelated parts of the application, you need a deep
 Redux ecosystem and action history, or your domain is naturally modeled as an
 atom dependency graph, another library may be a better fit.
 
-[![npm version](https://img.shields.io/npm/v/triactor.svg)](https://www.npmjs.com/package/triactor)
-[![CI](https://github.com/zakaihamilton/triactor/actions/workflows/ci.yml/badge.svg)](https://github.com/zakaihamilton/triactor/actions/workflows/ci.yml)
-[![License](https://img.shields.io/npm/l/triactor.svg)](https://github.com/zakaihamilton/triactor/blob/main/LICENSE)
+[![npm version][npm-version]][npm-package]
+[![CI][ci-badge]][ci-workflow]
+[![License][license-badge]][license-file]
 
-triactor gives React components typed, mutable-looking state that is scoped to a hierarchy of nodes. It is a small fit for local state shared across a subtree, with isolated React roots, selector-based subscriptions, and SSR-safe boundaries.
+[npm-version]: https://img.shields.io/npm/v/triactor.svg
+[npm-package]: https://www.npmjs.com/package/triactor
+[ci-badge]:
+  https://github.com/zakaihamilton/triactor/actions/workflows/ci.yml/badge.svg
+[ci-workflow]: https://github.com/zakaihamilton/triactor/actions/workflows/ci.yml
+[license-badge]: https://img.shields.io/npm/l/triactor.svg
+[license-file]: https://github.com/zakaihamilton/triactor/blob/main/LICENSE
+
+triactor gives React components typed, mutable-looking state scoped to a
+hierarchy of nodes. It is a small fit for local state shared across a subtree,
+with isolated React roots, selector-based subscriptions, and SSR-safe
+boundaries.
 
 ## Installation
 
@@ -68,11 +82,13 @@ yarn add triactor
 pnpm add triactor
 ```
 
-React is a peer dependency and must be installed separately. React 18 or newer is supported.
+React is a peer dependency and must be installed separately. React 18 or newer
+is supported.
 
 ## Quick start
 
-Define a state scope once, then render it inside a `StateRoot` and a named `Node`:
+Define a state scope once, then render it inside a `StateRoot` and a named
+`Node`:
 
 ```tsx
 import { Node, StateRoot, createState } from 'triactor';
@@ -112,13 +128,16 @@ export function App() {
 }
 ```
 
-`StateRoot` is required around every rendered tree. A `Node` establishes a scope in the component hierarchy, and `createState` gives that scope a typed state store and React hooks.
+`StateRoot` is required around every rendered tree. A `Node` establishes a
+scope in the component hierarchy, and `createState` gives that scope a typed
+state store and React hooks.
 
 ## Core concepts
 
 ### State roots
 
-Each `StateRoot` owns an independent state tree. This keeps separate React roots isolated and gives server rendering and hydration a stable boundary:
+Each `StateRoot` owns an independent state tree. This keeps separate React
+roots isolated and gives server rendering and hydration a stable boundary:
 
 ```tsx
 <>
@@ -148,11 +167,14 @@ The two trees have separate stores, even when they render the same components.
 </StateRoot>
 ```
 
-State can be attached to a node and read by descendants. `Node.useNode()` and the node helper functions are available for lower-level integrations, but most components only need a state scope.
+State can be attached to a node and read by descendants. `Node.useNode()` and
+the node helper functions are available for lower-level integrations, but
+most components only need a state scope.
 
 ### State scopes
 
-`createState<T>(displayName)` returns a React component with hooks for a typed `StateStore<T>`:
+`createState<T>(displayName)` returns a React component with hooks for a typed
+`StateStore<T>`:
 
 ```tsx
 const UserState = createState<{
@@ -165,13 +187,16 @@ const UserState = createState<{
 Use plain objects with string-keyed properties for state. Stores do not preserve
 class prototypes, array behavior, or symbol-keyed properties.
 
-The returned state scope can be rendered as a component, or its hooks can be used directly. State stores are proxy objects, so their properties can be read and updated directly while React subscriptions handle rerenders.
+The returned state scope can be rendered as a component, or its hooks can be
+used directly. State stores are proxy objects, so their properties can be
+read and updated directly while React subscriptions handle rerenders.
 
 ## Reading and updating state
 
 ### `useState`
 
-Use `Scope.useState(selector?, initial?, id?)` when a component owns or consumes state at its current scope:
+Use `Scope.useState(selector?, initial?, id?)` when a component owns or
+consumes state at its current scope:
 
 ```tsx
 function Profile() {
@@ -185,7 +210,10 @@ function Profile() {
 }
 ```
 
-When an `initial` value is supplied, the store is created at the current node if it does not already exist. Without an initial value, the hook looks for the nearest store in the current node and its ancestors. It returns `undefined` when no store is available.
+When an `initial` value is supplied, the store is created at the current node
+if it does not already exist. Without an initial value, the hook looks for the
+nearest store in the current node and its ancestors. It returns `undefined`
+when no store is available.
 
 Direct assignment and callable shallow drafts are both supported:
 
@@ -211,7 +239,8 @@ user.preferences = {
 };
 ```
 
-Store properties can also be deleted. With TypeScript, use an optional or index-signature property when deleting a key:
+Store properties can also be deleted. With TypeScript, use an optional or
+index-signature property when deleting a key:
 
 ```tsx
 type Settings = { theme?: string };
@@ -223,7 +252,8 @@ if (settings) delete settings.theme;
 
 ### Selectors
 
-Selectors limit rerenders to relevant top-level keys. Pass a selector as the first argument to `useState`:
+Selectors limit rerenders to relevant top-level keys. Pass a selector as the
+first argument to `useState`:
 
 ```tsx
 const DashboardState = createState<{
@@ -238,7 +268,11 @@ function Dashboard() {
   const visible = DashboardState.useState({ count: true, label: true });
   const dynamic = DashboardState.useState((key) => key.startsWith('visible'));
 
-  return <output>{count?.count ?? summary?.label ?? visible?.count ?? dynamic?.visibleCount}</output>;
+  return (
+    <output>
+      {count?.count ?? summary?.label ?? visible?.count ?? dynamic?.visibleCount}
+    </output>
+  );
 }
 ```
 
@@ -252,11 +286,14 @@ Supported selector forms are:
 | `{ count: true }` | Keys with truthy entries |
 | `(key) => boolean` | Keys accepted by the predicate |
 
-Selectors only control notifications. The returned store still exposes the complete state object.
+Selectors only control notifications. The returned store still exposes the
+complete state object.
 
 ### `useFutureState`
 
-Use `useFutureState(selector?, id?)` when a consumer may render before a provider exists. It searches the current node and its ancestors, then updates when a matching state store is mounted later:
+Use `useFutureState(selector?, id?)` when a consumer may render before a
+provider exists. It searches the current node and its ancestors, then updates
+when a matching state store is mounted later:
 
 ```tsx
 function Toolbar() {
@@ -266,11 +303,13 @@ function Toolbar() {
 }
 ```
 
-This hook does not create a store. It returns `undefined` until a `UserState` store is available.
+This hook does not create a store. It returns `undefined` until a `UserState`
+store is available.
 
 ### `usePassiveState`
 
-Use `usePassiveState()` to read the nearest store without subscribing the component to store value updates:
+Use `usePassiveState()` to read the nearest store without subscribing the
+component to store value updates:
 
 ```tsx
 function DebugLabel() {
@@ -305,9 +344,12 @@ settings((draft) => {
 unsubscribe();
 ```
 
-Store notifications are batched in a microtask. Multiple synchronous changes notify subscribers once with the changed top-level keys.
+Store notifications are batched in a microtask. Multiple synchronous changes
+notify subscribers once with the changed top-level keys.
 
-The package also exports `useObjectState` and `useObjectHandler` for connecting an existing store to React, plus lower-level store helpers such as `getStoreSnapshot`, `getStoreCounter`, and `matchesSelector`.
+The package also exports `useObjectState` and `useObjectHandler` for connecting
+an existing store to React, plus lower-level store helpers such as
+`getStoreSnapshot`, `getStoreCounter`, and `matchesSelector`.
 
 ## Server-side rendering and hydration
 
@@ -333,7 +375,10 @@ const markup = renderToString(<RootTree />);
 hydrateRoot(document.getElementById('root')!, <RootTree />);
 ```
 
-`StateRoot` prevents state from leaking between render trees and provides the context needed during SSR. Using the same initial state inputs on the server and client allows React to hydrate the rendered markup without duplicate state or markup.
+`StateRoot` prevents state from leaking between render trees and provides the
+context needed during SSR. Using the same initial state inputs on the server
+and client allows React to hydrate the rendered markup without duplicate
+state or markup.
 
 ## When to use triactor
 
@@ -345,7 +390,9 @@ triactor is a good fit when state:
 - needs small, typed updates with selector-based subscriptions; or
 - must work consistently with SSR and hydration.
 
-It is focused on local and shared UI state. It does not fetch, cache, or synchronize server data, so pair it with a server-state solution when your application needs those capabilities.
+It is focused on local and shared UI state. It does not fetch, cache, or
+synchronize server data, so pair it with a server-state solution when your
+application needs those capabilities.
 
 ## Development
 
@@ -364,14 +411,17 @@ For an interactive test run, use `npm run test:watch`.
 
 ## Releases
 
-Releases are published from version tags by GitHub Actions using npm trusted publishing. To create a release:
+Releases are published from version tags by GitHub Actions using npm trusted
+publishing. To create a release:
 
 ```bash
 npm version patch
 git push --follow-tags origin main
 ```
 
-Before the first tagged release, configure `zakaihamilton/triactor` as a trusted publisher for the package in npm's package settings. The workflow uses GitHub's OIDC identity and does not store an npm token in the repository.
+Before the first tagged release, configure `zakaihamilton/triactor` as a
+trusted publisher for the package in npm's package settings. The workflow
+uses GitHub's OIDC identity and does not store an npm token in the repository.
 
 ## License
 
