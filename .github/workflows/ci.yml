@@ -18,6 +18,14 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch base branch for Changesets
+        if: github.event_name == 'pull_request'
+        run: git fetch --no-tags origin "refs/heads/${BASE_BRANCH}:refs/heads/${BASE_BRANCH}"
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
