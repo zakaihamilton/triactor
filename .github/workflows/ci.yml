@@ -21,6 +21,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
       - name: Fetch base branch for Changesets
         if: github.event_name == 'pull_request'
         run: git fetch --no-tags origin "refs/heads/${BASE_BRANCH}:refs/heads/${BASE_BRANCH}"
@@ -31,16 +34,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
 
       - name: Repository health
-        run: npm run health
+        run: pnpm run health
 
       - name: Verify package contents
-        run: npm run pack:check
+        run: pnpm run pack:check

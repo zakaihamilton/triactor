@@ -399,15 +399,15 @@ application needs those capabilities.
 Install dependencies and run the verification commands from the repository root:
 
 ```bash
-npm ci
-npm run typecheck
-npm test
-npm run test:coverage
-npm run build
-npm run pack:check
+pnpm install --frozen-lockfile
+pnpm run typecheck
+pnpm test
+pnpm run test:coverage
+pnpm run build
+pnpm run pack:check
 ```
 
-For an interactive test run, use `npm run test:watch`.
+For an interactive test run, use `pnpm run test:watch`.
 
 ## Releases
 
